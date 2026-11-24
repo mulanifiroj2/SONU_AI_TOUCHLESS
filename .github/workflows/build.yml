@@ -4,8 +4,7 @@ name: Build SONU AI Touchless APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: read
@@ -15,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -29,29 +28,31 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract project ZIP
+      - name: Extract ZIP
         run: |
           unzip -o SONU_AI_TOUCHLESS_FINAL.zip -d extracted
           cp -r extracted/. .
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
-      - name: Install Android SDK
-        run: |
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses
 
-      - name: Download hand tracking model
+      - name: Download Hand Model
         run: |
           mkdir -p app/src/main/assets
           curl -L --fail --retry 3 \
           "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task" \
           -o app/src/main/assets/hand_landmarker.task
 
-      - name: Build SONU AI APK
+      - name: Build APK
         run: gradle assembleDebug
 
-      - name: Upload final APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SONU-AI-TOUCHLESS-APK
